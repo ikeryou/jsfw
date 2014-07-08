@@ -33,6 +33,9 @@ class root.MY_CLASS.base
 		# リサイズ用タイマー
 		@_rTimer;
 		
+		# 要素作成用カウンタ
+		@makeElmCnt = 0;
+		
 		# ウィンドウサイズ
 		@ws = {w:0, h:0, oldW:-1, oldH:-1};
 		

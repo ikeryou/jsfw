@@ -33,6 +33,11 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
       this.setMousePos = __bind(this.setMousePos, this);
       this.setBtn = __bind(this.setBtn, this);
       this.alpha = __bind(this.alpha, this);
+      this.setTransform = __bind(this.setTransform, this);
+      this.scale = __bind(this.scale, this);
+      this.rotate = __bind(this.rotate, this);
+      this.translate = __bind(this.translate, this);
+      this.set3d = __bind(this.set3d, this);
       this.xy = __bind(this.xy, this);
       this.y = __bind(this.y, this);
       this.x = __bind(this.x, this);
@@ -62,10 +67,19 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
       this.update = __bind(this.update, this);
       this.addStage = __bind(this.addStage, this);
       this.init = __bind(this.init, this);
-      this._id = elm.attr != null ? elm.attr("id") : elm;
-      this._elm = elm.attr != null ? elm : null;
-      this._isUpdate = (option != null) && (option.update != null) ? option.update : true;
-      this._isResize = (option != null) && (option.resize != null) ? option.resize : true;
+      if ((option == null) && (elm != null) && (elm.attr == null) && typeof elm !== "string") {
+        option = elm;
+      }
+      if (typeof elm === "string") {
+        this._id = elm;
+      } else {
+        this._id = (elm != null) && (elm.attr != null) ? elm.attr("id") : root.MY.conf.ID + "Elm" + root.MY.main.makeElmCnt++;
+      }
+      this._elm = (elm != null) && (elm.attr != null) ? elm : null;
+      this._u = root.MY.util;
+      this._isUse3D = !root.MY.conf.IS_U_IE9;
+      this._isUpdate = (option != null) && (option.update != null) ? option.update : false;
+      this._isResize = (option != null) && (option.resize != null) ? option.resize : false;
       this._image;
       this._position = {
         x: 0,
@@ -74,6 +88,17 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
       this._size = {
         width: 0,
         height: 0
+      };
+      this._transform = {
+        dx: 0,
+        dy: 0,
+        dz: 0,
+        scaleX: 1,
+        scaleY: 1,
+        scaleZ: 1,
+        rotX: 0,
+        rotY: 0,
+        rotZ: 0
       };
       this._alpha = 1;
       this._mouse = {
@@ -157,14 +182,20 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
       }
       this._position = null;
       this._size = null;
-      return this._mouse = null;
+      this._mouse = null;
+      this._transform = null;
+      return this._u = null;
     };
 
     display.prototype.dispose2 = function() {};
 
     display.prototype.addChild = function(view) {
       if (this._elm != null) {
-        this._elm.append("<div id='" + view.id() + "'></div>");
+        if ($("#" + view.id()).length > 0) {
+          $("#" + view.id()).appendTo(this._elm);
+        } else {
+          this._elm.append("<div id='" + view.id() + "'></div>");
+        }
         view.setupElm();
         return view.init();
       }
@@ -336,6 +367,78 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
         });
         this._position.x = val1;
         return this._position.y = val2;
+      }
+    };
+
+    display.prototype.set3d = function(orginX, orginY, orginZ) {
+      if (this._elm != null) {
+        this._elm.css(this._u.getVendorCss("transform-style", "preserve-3d"));
+        if ((orginX != null) || (orginY != null) || (orginZ != null)) {
+          if (orginX == null) {
+            orginX = this._size.width * 0.5;
+          }
+          if (orginY == null) {
+            orginY = this._size.height * 0.5;
+          }
+          if (orginZ == null) {
+            orginZ = 0;
+          }
+          return this._elm.css(this._u.getVendorCss("transform-origin", orginX + "px " + orginY + "px " + orginZ + "px"));
+        }
+      }
+    };
+
+    display.prototype.translate = function(val1, val2, val3) {
+      if ((val1 == null) && (val2 == null) && (val3 == null)) {
+        return this._transform;
+      } else {
+        if (val2 == null) {
+          val2 = 0;
+        }
+        if (val3 == null) {
+          val3 = 0;
+        }
+        this._transform.dx = val1;
+        this._transform.dy = val2;
+        return this._transform.dz = val3;
+      }
+    };
+
+    display.prototype.rotate = function(val1, val2, val3) {
+      if ((val1 == null) && (val2 == null) && (val3 == null)) {
+        return this._transform;
+      } else {
+        if (val2 == null) {
+          val2 = 0;
+        }
+        if (val3 == null) {
+          val3 = 0;
+        }
+        this._transform.rotX = val1;
+        this._transform.rotY = val2;
+        return this._transform.rotZ = val3;
+      }
+    };
+
+    display.prototype.scale = function(val1, val2, val3) {
+      if ((val1 == null) && (val2 == null) && (val3 == null)) {
+        return this._transform;
+      } else {
+        if (val2 == null) {
+          val2 = 1;
+        }
+        if (val3 == null) {
+          val3 = 1;
+        }
+        this._transform.scaleX = val1;
+        this._transform.scaleY = val2;
+        return this._transform.scaleZ = val3;
+      }
+    };
+
+    display.prototype.setTransform = function() {
+      if (this._elm != null) {
+        return this._elm.css(this._u.getVendorCss("transform", this._u.translate3d(this._transform.dx, this._transform.dy, this._transform.dz, this._isUse3D) + " " + this._u.rotateX(this._transform.rotX) + " " + this._u.rotateY(this._transform.rotY) + " " + this._u.rotateZ(this._transform.rotZ) + " " + this._u.scaleX(this._transform.scaleX) + " " + this._u.scaleY(this._transform.scaleY)));
       }
     };
 
@@ -2271,6 +2374,7 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
       this._resizeList = [];
       this._stats;
       this._rTimer;
+      this.makeElmCnt = 0;
       this.ws = {
         w: 0,
         h: 0,
@@ -2380,7 +2484,7 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
   root.MY_CLASS.conf = (function() {
     function conf() {
       this.ID = "sample";
-      this.STATS = true;
+      this.STATS = false;
       this.FPS = 40;
       this.IS_IOS = root.MY.util.isIos();
       this.IS_ADR = root.MY.util.isAndroid();
@@ -2388,8 +2492,8 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
       this.IS_PS = root.MY.util.isPs3() || root.MY.util.isVita();
       this.IS_WIN = root.MY.util.isWin();
       this.IS_IPAD = root.MY.util.isIpad();
-      this.IS_IE8 = root.MY.util.isIe8Under();
-      this.IS_IE9 = root.MY.util.isIe9Under();
+      this.IS_U_IE8 = root.MY.util.isIe8Under();
+      this.IS_U_IE9 = root.MY.util.isIe9Under();
       this.IS_IE = root.MY.util.isIe();
       this.IS_FF = root.MY.util.isFF();
       this.IS_RATINA = (window.devicePixelRatio != null) && window.devicePixelRatio > 1;
@@ -2442,7 +2546,28 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
       contentsView.__super__.constructor.call(this, elm);
     }
 
-    contentsView.prototype.setup = function() {};
+    contentsView.prototype.setup = function() {
+      var test1, test2, test3;
+      test1 = new root._LIBS.display();
+      this.addChild(test1);
+      test1.size(300, 300);
+      test1.bgColor("#ff0000");
+      test1.xy(0, 0);
+      test1.set3d(0, 0);
+      test1.rotate(0, 0, 45);
+      test1.translate(0, 0);
+      test1.scale(1.5, 1.5);
+      test1.setTransform();
+      test2 = new root._LIBS.display("test2");
+      this.addChild(test2);
+      test3 = new root._LIBS.display("test3", {
+        update: true,
+        resize: true
+      });
+      this.addChild(test3);
+      console.log(test1);
+      return console.log(test3);
+    };
 
     contentsView.prototype.update = function() {};
 

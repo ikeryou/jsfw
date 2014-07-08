@@ -22,12 +22,35 @@ class root.MY_CLASS.contentsView extends root._LIBS.display
 	# セットアップ
 	# -----------------------------------------------
 	setup: =>	
-	
 		
-		#test = new root._LIBS.display();
-		
+		#@set3d();
 		
 		
+		test1 = new root._LIBS.display();
+		@addChild(test1);
+		test1.size(300, 300);
+		test1.bgColor("#ff0000");
+		test1.xy(0, 0);
+		
+		test1.set3d(0, 0);
+		test1.rotate(0, 0, 45);
+		test1.translate(0, 0);
+		test1.scale(1.5, 1.5);
+		test1.setTransform();
+		
+		
+		#console.log($("body").html());
+		
+		test2 = new root._LIBS.display("test2");
+		@addChild(test2);
+		
+		test3 = new root._LIBS.display("test3", {update:true, resize:true});
+		@addChild(test3);
+		
+		console.log(test1); 
+		console.log(test3); 
+		
+		#console.log($("body").html());
 	
 		
 	# -----------------------------------

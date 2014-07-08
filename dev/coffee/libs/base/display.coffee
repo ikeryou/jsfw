@@ -16,23 +16,35 @@ class root._LIBS.display
 	
 	# コンストラクタ
 	# -----------------------------------------------
-	# @elm : jQueryエレメント ID名を指定した場合新規に作成される
-	# @option : update..updateイベントを実行させるかどうか(デフォルトtrue) 
-	#           resize..resizeイベントを実行させるかどうか(デフォルトtrue)
+	# @elm : jQueryエレメント、ID名、省略した場合optionに
+	# @option : update..updateイベントを実行させるかどうか(デフォルトfalse) 
+	#           resize..resizeイベントを実行させるかどうか(デフォルトfalse)
 	# -----------------------------------------------
 	constructor: (elm, option) ->
 		
+		if !option? && elm? && !elm.attr? && typeof elm != "string"
+			option = elm;
+				
 		# ID名
-		@_id = if elm.attr? then elm.attr("id") else elm;
+		if typeof elm == "string"
+			@_id = elm;
+		else
+			@_id = if elm? && elm.attr? then elm.attr("id") else root.MY.conf.ID + "Elm" + root.MY.main.makeElmCnt++;
 		
 		# 要素
-		@_elm = if elm.attr? then elm else null;
+		@_elm = if elm? && elm.attr? then elm else null;
+		
+		# utilオブジェクト(参照)
+		@_u = root.MY.util;
+		
+		# transform3Dを使えるかどうか
+		@_isUse3D = !root.MY.conf.IS_U_IE9;
 		
 		# updateイベント実行
-		@_isUpdate = if option? && option.update? then option.update else true;
+		@_isUpdate = if option? && option.update? then option.update else false;
 		
 		# resizeイベント実行
-		@_isResize = if option? && option.resize? then option.resize else true;
+		@_isResize = if option? && option.resize? then option.resize else false;
 		
 		# 画像セットした場合のimage
 		@_image;
@@ -42,6 +54,19 @@ class root._LIBS.display
 		
 		# サイズ
 		@_size = {width:0, height:0};
+		
+		# TransForm値
+		@_transform = {
+			dx:0,
+			dy:0,
+			dz:0,
+			scaleX:1,
+			scaleY:1,
+			scaleZ:1,
+			rotX:0,
+			rotY:0,
+			rotZ:0
+		};
 		
 		# 透明度
 		@_alpha = 1;
@@ -151,6 +176,8 @@ class root._LIBS.display
 		@_position = null;
 		@_size = null;
 		@_mouse = null;
+		@_transform = null;
+		@_u = null;
 		
 	
 	# -----------------------------------
@@ -168,7 +195,18 @@ class root._LIBS.display
 	addChild: (view) =>
 		
 		if @_elm?
-			@_elm.append("<div id='" + view.id() + "'></div>");
+			
+			if $("#" + view.id()).length > 0
+				
+				# 存在してたら移動
+# 				@_elm.appendTo($("#" + view.id()));
+				$("#" + view.id()).appendTo(@_elm);
+				
+			else
+				
+				# 新規に作成
+				@_elm.append("<div id='" + view.id() + "'></div>");
+			
 			view.setupElm();
 			view.init();
 			
@@ -180,6 +218,7 @@ class root._LIBS.display
 	unshiftChild: (view) =>
 		
 		if @_elm?
+			
 			@_elm.prepend("<div id='" + view.id() + "'></div>");
 			view.setupElm();
 			view.init();
@@ -382,6 +421,8 @@ class root._LIBS.display
 			width:@_size.width,
 			height:@_size.height
 		});
+		
+		
 	
 	
 	# -----------------------------------
@@ -424,7 +465,105 @@ class root._LIBS.display
 			});
 			@_position.x = val1;
 			@_position.y = val2;
+	
+	
+	# -----------------------------------
+	# 3D設定
+	# -----------------------------------
+	set3d: (orginX, orginY, orginZ) =>
+	
+		if @_elm?
+				
+			@_elm.css(
+				@_u.getVendorCss(
+					"transform-style",
+					"preserve-3d"
+				)
+			);
 			
+			if orginX? || orginY? || orginZ?
+				if !orginX? then orginX = @_size.width * 0.5;
+				if !orginY? then orginY = @_size.height * 0.5;
+				if !orginZ? then orginZ = 0;
+				@_elm.css(
+					@_u.getVendorCss(
+						"transform-origin",
+						orginX + "px " + orginY + "px " + orginZ + "px"
+					)
+				);
+				
+			
+	# -----------------------------------
+	# translate設定
+	# -----------------------------------
+	translate: (val1, val2, val3) =>
+		
+		if !val1? && !val2? && !val3? 
+			
+			return @_transform;
+	
+		else
+		
+			if !val2? then val2 = 0;
+			if !val3? then val3 = 0;
+			
+			@_transform.dx = val1;
+			@_transform.dy = val2;
+			@_transform.dz = val3;
+	
+	
+	# -----------------------------------
+	# rotate設定
+	# -----------------------------------
+	rotate: (val1, val2, val3) =>
+		
+		if !val1? && !val2? && !val3? 
+			
+			return @_transform;
+	
+		else
+		
+			if !val2? then val2 = 0;
+			if !val3? then val3 = 0;
+			
+			@_transform.rotX = val1;
+			@_transform.rotY = val2;
+			@_transform.rotZ = val3;
+			
+	
+	# -----------------------------------
+	# scale設定
+	# -----------------------------------
+	scale: (val1, val2, val3) =>
+		
+		if !val1? && !val2? && !val3? 
+			
+			return @_transform;
+	
+		else
+		
+			if !val2? then val2 = 1;
+			if !val3? then val3 = 1;
+			
+			@_transform.scaleX = val1;
+			@_transform.scaleY = val2;
+			@_transform.scaleZ = val3;
+				
+	
+	# -----------------------------------
+	# TransForm設定
+	# -----------------------------------
+	setTransform: =>
+		
+		if @_elm?
+				
+			@_elm.css(
+				@_u.getVendorCss(
+					"transform",
+					@_u.translate3d(@_transform.dx, @_transform.dy, @_transform.dz, @_isUse3D) + " " + @_u.rotateX(@_transform.rotX) + " " + @_u.rotateY(@_transform.rotY) + " " + @_u.rotateZ(@_transform.rotZ) + " " + @_u.scaleX(@_transform.scaleX) + " " + @_u.scaleY(@_transform.scaleY);
+				)
+			);
+	
 	
 	# -----------------------------------
 	# 透明度

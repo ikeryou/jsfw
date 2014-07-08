@@ -580,7 +580,6 @@ class root._LIBS.utils
 			return 'translate(' + x + 'px,' + y + 'px)';
 	
 
-
 	# rotate()
 	# -----------------------------------
 	rotate: (val) ->

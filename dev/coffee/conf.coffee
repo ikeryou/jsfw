@@ -18,7 +18,7 @@ class root.MY_CLASS.conf
 		
 		
 		# Stats表示
-		@STATS = true;
+		@STATS = false;
 		
 		# FPS
 		@FPS = 40;
@@ -42,10 +42,10 @@ class root.MY_CLASS.conf
 		@IS_IPAD = root.MY.util.isIpad();
 
 		# IE8以下
-		@IS_IE8 = root.MY.util.isIe8Under();
+		@IS_U_IE8 = root.MY.util.isIe8Under();
 		
 		# IE9以下
-		@IS_IE9 = root.MY.util.isIe9Under();
+		@IS_U_IE9 = root.MY.util.isIe9Under();
 		
 		# IE
 		@IS_IE = root.MY.util.isIe();
