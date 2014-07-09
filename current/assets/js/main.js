@@ -1805,6 +1805,68 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
 
   })();
 
+  root.MY_CLASS.imagesMgr = (function() {
+    function imagesMgr(imgList, path) {
+      this._eCompletePreloadImg = __bind(this._eCompletePreloadImg, this);
+      this._eProgressPreloadImg = __bind(this._eProgressPreloadImg, this);
+      this._preloadImg = __bind(this._preloadImg, this);
+      this.load = __bind(this.load, this);
+      this._preImgList = ["miku0.png", "miku0_l.png", "pkg.png"];
+      this._loaderForPreImg;
+      this.onProgress;
+      this.onComplete;
+      this._init();
+    }
+
+    imagesMgr.prototype._init = function() {};
+
+    imagesMgr.prototype.load = function() {
+      return this._preloadImg();
+    };
+
+    imagesMgr.prototype._preloadImg = function() {
+      var i, imgList, len, url;
+      imgList = [];
+      len = this._preImgList.length;
+      i = 0;
+      while (i < len) {
+        url = root.MY.conf.PATH_IMG + this._preImgList[i];
+        if (root.MY.conf.IS_IE8) {
+          url = root.MY.util.addUnique(url);
+        }
+        imgList.push({
+          url: url,
+          id: i
+        });
+        i++;
+      }
+      this._loaderForImg = new root._LIBS.imagesLoader(imgList, 5);
+      this._loaderForImg.onComplete = this._eCompletePreloadImg;
+      this._loaderForImg.onProgress = this._eProgressPreloadImg;
+      return this._loaderForImg.start();
+    };
+
+    imagesMgr.prototype._eProgressPreloadImg = function(val) {
+      var pct;
+      if (this.onProgress != null) {
+        pct = val / 100;
+        return this.onProgress(100 * pct);
+      }
+    };
+
+    imagesMgr.prototype._eCompletePreloadImg = function() {
+      if (this.onProgress != null) {
+        this.onProgress(100);
+      }
+      if (this.onComplete != null) {
+        return this.onComplete();
+      }
+    };
+
+    return imagesMgr;
+
+  })();
+
   root = this;
 
   if (root._LIBS == null) {
@@ -2547,7 +2609,7 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
     }
 
     contentsView.prototype.setup = function() {
-      var test1, test2, test3;
+      var test1, test2, test3, testCon;
       test1 = new root._LIBS.display();
       this.addChild(test1);
       test1.size(300, 300);
@@ -2558,15 +2620,18 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
       test1.translate(0, 0);
       test1.scale(1.5, 1.5);
       test1.setTransform();
+      console.log($("body").html());
+      testCon = new root._LIBS.display();
+      this.addChild(testCon);
+      testCon.xy(200, 200);
       test2 = new root._LIBS.display("test2");
-      this.addChild(test2);
+      testCon.addChild(test2);
       test3 = new root._LIBS.display("test3", {
         update: true,
         resize: true
       });
-      this.addChild(test3);
-      console.log(test1);
-      return console.log(test3);
+      testCon.addChild(test3);
+      return console.log($("body").html());
     };
 
     contentsView.prototype.update = function() {};
