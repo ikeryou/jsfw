@@ -11,8 +11,8 @@ class root.MY_CLASS.contentsView extends root._LIBS.display
 	# -----------------------------------------------
 	constructor: (elm) ->
 		
-		# データ管理
-		@_data;
+		# 画像管理
+		@_imgData;
 				
 		super(elm);
 
@@ -39,7 +39,7 @@ class root.MY_CLASS.contentsView extends root._LIBS.display
 		test1.setTransform();
 		
 		
-		console.log($("body").html());
+		#console.log($("body").html());
 		
 		testCon = new root._LIBS.display();
 		@addChild(testCon);
@@ -54,7 +54,43 @@ class root.MY_CLASS.contentsView extends root._LIBS.display
 		#console.log(test1); 
 		#console.log(test3); 
 		
-		console.log($("body").html());
+		#console.log($("body").html());
+		
+				
+		# 画像管理
+		@_imgData = new root._LIBS.imagesMgr(
+			[
+				"dummy0.jpg",
+				"dummy1.jpg",
+				"dummy2.jpg",
+				"dummy3.jpg"
+			], 
+			root.MY.conf.PATH_IMG, 
+			root.MY.conf.IS_U_IE8
+		);
+		@_imgData.onComplete = @_eCompleteImages;
+		@_imgData.onProgress = @_eProgressImages;
+		@_imgData.load();
+	
+	
+	# -----------------------------------
+	# イベント 画像読み込み完了
+	# -----------------------------------
+	_eCompleteImages: =>
+		
+		console.log("_eCompleteImages");
+		
+		console.log(@_imgData.get(3));
+			
+	
+	# -----------------------------------
+	# イベント 画像読み込み中
+	# -----------------------------------
+	_eProgressImages: (pct) =>
+		
+		console.log("_eProgressImages", pct);
+		
+	
 	
 		
 	# -----------------------------------

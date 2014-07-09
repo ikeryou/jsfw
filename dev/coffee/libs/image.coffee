@@ -21,22 +21,43 @@ class root._LIBS.image
 	# @height : 高さ
 	# -----------------------------------------------
 	constructor: (src, width, height, alt) ->
-	
-		@src = src;
+		
+		# ファイル名
+		@src    = src;
 		@orgSrc = src;
-		@width = width;
-		@height = height;
+		
+		# サイズ
+		@width     = width;
+		@height    = height;
+		@orgWidth  = width;
+		@orgHeight = height;
+		
+		# Retina対応
+		if root.MY.conf.IS_RETINA && root.MY.conf.IS_IMG_RETINA
+			@width  = ~~(width * 0.5);
+			@height = ~~(height * 0.5);
+		
+		# Alt
 		@alt = alt;
 		
-		# 半分にしたやつ
-		@width05 = ~~(width * 0.5);
-		@height05 = ~~(height * 0.5);
-		
-		# imageオブジェクト
+		# imageオブジェクト (オリジナル)
 		@_image;
 		
 		# コールバック imageオブジェクトの生成完了
 		@onMakeData;
+		
+		
+		# 初期化
+		@_init();
+		
+	
+	# -----------------------------------
+	# 初期化
+	# -----------------------------------
+	_init: =>
+		
+		
+		
 		
 	
 	# -----------------------------------

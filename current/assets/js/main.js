@@ -1686,16 +1686,24 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
       this.makeData = __bind(this.makeData, this);
       this.data = __bind(this.data, this);
       this.dispose = __bind(this.dispose, this);
+      this._init = __bind(this._init, this);
       this.src = src;
       this.orgSrc = src;
       this.width = width;
       this.height = height;
+      this.orgWidth = width;
+      this.orgHeight = height;
+      if (root.MY.conf.IS_RETINA && root.MY.conf.IS_IMG_RETINA) {
+        this.width = ~~(width * 0.5);
+        this.height = ~~(height * 0.5);
+      }
       this.alt = alt;
-      this.width05 = ~~(width * 0.5);
-      this.height05 = ~~(height * 0.5);
       this._image;
       this.onMakeData;
+      this._init();
     }
+
+    image.prototype._init = function() {};
 
     image.prototype.dispose = function() {
       this._image = null;
@@ -1805,13 +1813,31 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
 
   })();
 
-  root.MY_CLASS.imagesMgr = (function() {
-    function imagesMgr(imgList, path) {
+  root = this;
+
+  if (root._LIBS == null) {
+    root._LIBS = {};
+  }
+
+  root._LIBS.imagesMgr = (function() {
+    function imagesMgr(imgList, path, cache) {
+      this.get = __bind(this.get, this);
       this._eCompletePreloadImg = __bind(this._eCompletePreloadImg, this);
       this._eProgressPreloadImg = __bind(this._eProgressPreloadImg, this);
-      this._preloadImg = __bind(this._preloadImg, this);
       this.load = __bind(this.load, this);
-      this._preImgList = ["miku0.png", "miku0_l.png", "pkg.png"];
+      var i, val, _i, _len;
+      if (path == null) {
+        path = "";
+      }
+      if (cache == null) {
+        cache = false;
+      }
+      this._imgList = [];
+      for (i = _i = 0, _len = imgList.length; _i < _len; i = ++_i) {
+        val = imgList[i];
+        this._imgList.push(path + val);
+      }
+      this._isCache = cache;
       this._loaderForPreImg;
       this.onProgress;
       this.onComplete;
@@ -1821,18 +1847,15 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
     imagesMgr.prototype._init = function() {};
 
     imagesMgr.prototype.load = function() {
-      return this._preloadImg();
-    };
-
-    imagesMgr.prototype._preloadImg = function() {
-      var i, imgList, len, url;
+      var i, imgList, len, u, url;
+      u = root.MY.util;
       imgList = [];
-      len = this._preImgList.length;
+      len = this._imgList.length;
       i = 0;
       while (i < len) {
-        url = root.MY.conf.PATH_IMG + this._preImgList[i];
-        if (root.MY.conf.IS_IE8) {
-          url = root.MY.util.addUnique(url);
+        url = this._imgList[i];
+        if (this._isCache) {
+          url = u.addUnique(url);
         }
         imgList.push({
           url: url,
@@ -1861,6 +1884,12 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
       if (this.onComplete != null) {
         return this.onComplete();
       }
+    };
+
+    imagesMgr.prototype.get = function(id) {
+      var data;
+      data = this._loaderForImg.getImg(id);
+      return new root._LIBS.image(data.src, data.width, data.height);
     };
 
     return imagesMgr;
@@ -2558,7 +2587,9 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
       this.IS_U_IE9 = root.MY.util.isIe9Under();
       this.IS_IE = root.MY.util.isIe();
       this.IS_FF = root.MY.util.isFF();
-      this.IS_RATINA = (window.devicePixelRatio != null) && window.devicePixelRatio > 1;
+      this.IS_RETINA = (window.devicePixelRatio != null) && window.devicePixelRatio > 1;
+      this.IS_IMG_RETINA = true;
+      this.PATH_IMG = "assets/images/";
     }
 
     return conf;
@@ -2603,8 +2634,10 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
     function contentsView(elm) {
       this.resize = __bind(this.resize, this);
       this.update = __bind(this.update, this);
+      this._eProgressImages = __bind(this._eProgressImages, this);
+      this._eCompleteImages = __bind(this._eCompleteImages, this);
       this.setup = __bind(this.setup, this);
-      this._data;
+      this._imgData;
       contentsView.__super__.constructor.call(this, elm);
     }
 
@@ -2620,7 +2653,6 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
       test1.translate(0, 0);
       test1.scale(1.5, 1.5);
       test1.setTransform();
-      console.log($("body").html());
       testCon = new root._LIBS.display();
       this.addChild(testCon);
       testCon.xy(200, 200);
@@ -2631,7 +2663,19 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
         resize: true
       });
       testCon.addChild(test3);
-      return console.log($("body").html());
+      this._imgData = new root._LIBS.imagesMgr(["dummy0.jpg", "dummy1.jpg", "dummy2.jpg", "dummy3.jpg"], root.MY.conf.PATH_IMG, root.MY.conf.IS_U_IE8);
+      this._imgData.onComplete = this._eCompleteImages;
+      this._imgData.onProgress = this._eProgressImages;
+      return this._imgData.load();
+    };
+
+    contentsView.prototype._eCompleteImages = function() {
+      console.log("_eCompleteImages");
+      return console.log(this._imgData.get(3));
+    };
+
+    contentsView.prototype._eProgressImages = function(pct) {
+      return console.log("_eProgressImages", pct);
     };
 
     contentsView.prototype.update = function() {};

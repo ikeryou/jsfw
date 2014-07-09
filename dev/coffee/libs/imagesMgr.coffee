@@ -2,30 +2,40 @@
 # imagesMgr.coffee
 # ---------------------------------------------------
 
+root = this;
+if !root._LIBS?
+	root._LIBS = {};
+	
 # ---------------------------------------------------
 # 画像管理クラス
 # ---------------------------------------------------
-class root.MY_CLASS.imagesMgr
+class root._LIBS.imagesMgr
 	
 	
 	# -----------------------------------------------
 	# コンストラクタ
-	# @imgList : 扱う画像ファイルリスト
+	# @imgList : 画像ファイルリスト [] 順番がそのままIDになる
+	# @path    : 共通画像パス def..""
+	# @cache   : キャッシュ対策を行うかどうか def..false
 	# -----------------------------------------------
-	constructor: (imgList, path) ->
+	constructor: (imgList, path, cache) ->
 		
+		if !path? then path = "";
+		if !cache? then cache = false;
 		
-		# プリロード用画像リスト
-		@_preImgList = [
-			"miku0.png",
-			"miku0_l.png",
-			"pkg.png"
-		];			
+		# 画像ファイルリスト
+		@_imgList = [];			
+		for val,i in imgList
+			@_imgList.push(path + val);
 		
-		# ローダー プリロード用
+		# フラグ キャッシュ対策を行うかどうか
+		@_isCache = cache;
+		
+		# ローダー
 		@_loaderForPreImg;
 		
-		# コールバック 読み込み中 0~100
+		
+		# コールバック 読み込み中 0~100の値を返す
 		@onProgress;
 		
 		# コールバック 写真情報読み込み完了
@@ -43,30 +53,21 @@ class root.MY_CLASS.imagesMgr
 		
 		
 	
+
 	# -----------------------------------------------
-	# データ読み込み
+	# 画像読み込み
 	# -----------------------------------------------
 	load: =>
 		
-		# プリロード
-		@_preloadImg();
-		
-
-	# -----------------------------------------------
-	# プリロード用の画像の読み込み
-	# -----------------------------------------------
-	_preloadImg: =>
-		
+		u = root.MY.util;
 		imgList = [];
-		len = @_preImgList.length;
+		len = @_imgList.length;
 		i = 0;
 		while i < len
 			
-			url = root.MY.conf.PATH_IMG + @_preImgList[i];
-			
-			# IE8はキャッシュ対策のためユニークIDをつける
-			if root.MY.conf.IS_IE8
-				url = root.MY.util.addUnique(url);
+			url = @_imgList[i];
+			if @_isCache
+				url = u.addUnique(url);
 			
 			imgList.push({url:url, id:i});
 			i++;
@@ -96,5 +97,25 @@ class root.MY_CLASS.imagesMgr
 		if @onProgress? then @onProgress(100);
 		if @onComplete? then @onComplete();
 		
+	
+	# -----------------------------------------------
+	# imageオブジェクト取得(root._LIBS.image)
+	# @id : @_imgListで渡した際のID
+	# -----------------------------------------------
+	get: (id) =>
 		
+		data = @_loaderForImg.getImg(id);
+		return new root._LIBS.image(data.src, data.width, data.height);
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	

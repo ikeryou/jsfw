@@ -54,8 +54,12 @@ class root.MY_CLASS.conf
 		@IS_FF = root.MY.util.isFF();
 
 		# Retinaディスプレイ
-		@IS_RATINA = (window.devicePixelRatio? && window.devicePixelRatio > 1);
+		@IS_RETINA = (window.devicePixelRatio? && window.devicePixelRatio > 1);
 		
+		# 画像をRetina対応するかどうか
+		@IS_IMG_RETINA = true;
 		
+		# 共通画像パス
+		@PATH_IMG = "assets/images/";
 
 
