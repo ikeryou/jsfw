@@ -14,36 +14,27 @@ class root._LIBS.debugView extends root._LIBS.display
 	
 	# コンストラクタ
 	# -----------------------------------------------
-	# @id : ID名
-	# @sliderPara : 
-	# 	sliderPara.list : 各スライダーの設定値       
-	#                     [].min..最小値
-	#                     [].max..最大値
-	#                     [].def..デフォルト値
-	#                     [].name..パラメータ名
-	# 	sliderPara.width    : スライダーの幅 def..200
-	# 	sliderPara.height   : スライダーの高さ def..20
-	# 	sliderPara.bgColor  : スライダー背景色 def.."#FFFFFF"
-	# 	sliderPara.btnColor : スライダーボタン色 def.."#888888"
+	# @list : 項目リスト[]
+	#					{type:種類(0..スライダー 1..トグル), name:名前, def:デフォルト値, min:最小値(スライダーのみ), max:最大値(スライダーのみ)}
 	# -----------------------------------------------
-	constructor: (id, sliderPara) ->
+	constructor: (list) ->
 		
-		@_sliderPara = sliderPara;
-		if !@_sliderPara.width? then @_sliderPara.width = 200;
-		if !@_sliderPara.height? then @_sliderPara.height = 20;
-		if !@_sliderPara.bgColor? then @_sliderPara.bgColor = "#FFFFFF";
-		if !@_sliderPara.btnColor? then @_sliderPara.btnColor = "#888888";
-		
-		@_slider = [];
+		@_list = list;
+		@_parts = [];
 		
 		# 表示切り替えボタン
-		@_toggle;
+		@_vBtn;
 		
-		# コールバック スライダ−の値が変更された
-		@onChangeSlider;
+		# コンテナ
+		@_con;
 		
-		super(id, {resize:false, update:false});
+		# 背景
+		@_bg;
 		
+		# コールバック 値が変更された
+		@onChange;
+		
+		super();
 		
 		
 	# -----------------------------------------------
@@ -56,21 +47,40 @@ class root._LIBS.debugView extends root._LIBS.display
 			zIndex:9999
 		});
 		
-		# スライダー作成
-		for val,i in @_sliderPara.list
+		# コンテナ
+		@_con = new root._LIBS.display();
+		@addChild(@_con);
+		
+		# 背景
+		@_bg = new root._LIBS.display();
+		@_con.addChild(@_bg);
+		@_bg.bgColor("#fff");
+		@_bg.alpha(0.8);
+		
+		# パーツ作成
+		for val,i in @_list
 			
-			slider = new root._LIBS.slider(@id() + "_slider_" + i, val.min, val.max, val.def, val.name);
-			@addChild(slider);
-			slider.setSlider(@_sliderPara.width, @_sliderPara.height, @_sliderPara.bgColor, @_sliderPara.btnColor);
-			slider.y((i + 1) * (@_sliderPara.height + 25));
-			slider.onChange = @_eChangeSlider;
-			@_slider.push(slider);
+			if val.type == 0
+				# スライダー
+				parts = new root._LIBS.slider(val.min, val.max, val.def, val.name);
+			else
+				# トグル
+				parts = new root._LIBS.toggle(val.def, val.name);
+				
+			@_con.addChild(parts);
+			parts.y((i + 1) * 50);
+			parts.onChange = @_eChange;
+			
+			@_parts.push(parts);
+		
+		@_bg.size(250, parts.y() + 70);
+		@_bg.xy(-25, 0);
 		
 		# 表示切り替えボタン
-		@_toggle = new root._LIBS.btnAreaView(@id() + "_toggle", @_sliderPara.height, @_sliderPara.height);
+		@_toggle = new root._LIBS.btnAreaView(20, 20);
 		@addChild(@_toggle);
 		@_toggle.elm().css({
-			backgroundColor:@_sliderPara.bgColor,
+			backgroundColor:"#FF0000"
 			opacity:1
 		});
 		@_toggle.onClick = @_eClickToggle;
@@ -82,25 +92,25 @@ class root._LIBS.debugView extends root._LIBS.display
 	# -----------------------------------------------
 	_eClickToggle: =>
 		
-		for val,i in @_slider
-			val.alpha(if val.alpha() == 1 then 0 else 1);
+		@_con.alpha(if @_con.alpha() == 1 then 0 else 1);
 	
 		
 	# -----------------------------------------------
 	# イベント スライダーの値が変更された
 	# -----------------------------------------------
-	_eChangeSlider: (id) =>
+	_eChange: =>
 		
-		if @onChangeSlider?
-			@onChangeSlider(id.split("_")[2]);
+		if @onChange?
+			@onChange();
 	
 	
 	# -----------------------------------------------
 	# パラメータ取得
+	# @key : 最初に渡したlistの順番
 	# -----------------------------------------------
-	sliderVal: (key) =>
+	val: (key) =>
 		
-		return @_slider[key].sliderVal();
+		return @_parts[key].val();
 		
 		
 	# -----------------------------------------------

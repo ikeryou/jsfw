@@ -14,9 +14,9 @@ class root._LIBS.borderView extends root._LIBS.display
 	
 	# コンストラクタ
 	# -----------------------------------------------
-	constructor: (elm, width, height, color, weight) ->
+	constructor: (width, height, color, weight) ->
 		
-		super(elm, {update:false, resize:false});
+		super();
 		
 		# 色
 		@_color = color;
@@ -40,16 +40,16 @@ class root._LIBS.borderView extends root._LIBS.display
 		
 		@size(@_width2, @_height2);
 		
-		@_top = new root._LIBS.display(@id() + "_top", {update:false, resize:false});
+		@_top = new root._LIBS.display();
 		@addChild(@_top);
 		
-		@_left = new root._LIBS.display(@id() + "_left", {update:false, resize:false});
+		@_left = new root._LIBS.display();
 		@addChild(@_left);
 		
-		@_bottom = new root._LIBS.display(@id() + "_bottom", {update:false, resize:false});
+		@_bottom = new root._LIBS.display();
 		@addChild(@_bottom);
 		
-		@_right = new root._LIBS.display(@id() + "_right", {update:false, resize:false});
+		@_right = new root._LIBS.display();
 		@addChild(@_right);
 		
 		@changeBorder(@width(), @height());
@@ -60,6 +60,21 @@ class root._LIBS.borderView extends root._LIBS.display
 	# -----------------------------------
 	dispose2: =>
 		
+		if @_top?
+			@_top.dispose();
+			@_top = null;
+		
+		if @_left?
+			@_left.dispose();
+			@_left = null;
+		
+		if @_bottom?
+			@_bottom.dispose();
+			@_bottom = null;
+		
+		if @_right?
+			@_right.dispose();
+			@_right = null;
 			
 		
 	# -----------------------------------

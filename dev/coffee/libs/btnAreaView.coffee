@@ -14,9 +14,9 @@ class root._LIBS.btnAreaView extends root._LIBS.display
 	
 	# コンストラクタ
 	# -----------------------------------------------
-	constructor: (elm, width, height) ->
+	constructor: (width, height) ->
 		
-		super(elm, {update:false, resize:false});
+		super();
 		
 		# サイズ
 		@_width = width;
@@ -39,6 +39,9 @@ class root._LIBS.btnAreaView extends root._LIBS.display
 			opacity:0
 		});
 		@setBtn([@_eRollOver], [@_eRollOut], [@_eClick]);
+		
+		if root.MY.conf.IS_V_BTNAREA
+			@visible(true);
 		
 	
 	# -----------------------------------

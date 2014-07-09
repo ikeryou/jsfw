@@ -16,9 +16,9 @@ class root._LIBS.canvas extends root._LIBS.display
 	
 	# コンストラクタ
 	# -----------------------------------------------
-	constructor: (elm, option) ->
+	constructor: ->
 		
-		super(elm, option);
+		super();
 		
 		# canvas要素ID
 		@_canvasId;

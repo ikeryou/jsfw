@@ -56,6 +56,38 @@ class root.MY_CLASS.contentsView extends root._LIBS.display
 		
 		#console.log($("body").html());
 		
+		
+		test4 = new root._LIBS.borderView(200, 200, "#00FF00", 5);
+		testCon.addChild(test4);
+		
+		btn1 = new root._LIBS.btnAreaView(50, 50);
+		testCon.addChild(btn1);
+		btn1.onClick = =>
+			console.log("unko");
+		;
+		
+		
+		# toggle = new root._LIBS.toggle(true, "TEST");
+# 		@addChild(toggle);
+# 		toggle.xy(200, 20);
+		
+		# slider = new root._LIBS.slider(0, 100, 50, "TEST");
+# 		@addChild(slider);
+# 		slider.xy(200, 20);
+
+
+		debug = new root._LIBS.debugView([
+			{type:0, name:"SLIDER01", def:50, min:0, max:100},
+			{type:0, name:"SLIDER02", def:20, min:0, max:200},
+			{type:1, name:"TOGGLE01", def:true},
+			{type:0, name:"SLIDER03", def:20, min:0, max:300},
+			{type:1, name:"TOGGLE02", def:false}
+		]);
+		@addChild(debug);
+		debug.xy(200, 20);
+		
+		
+		
 				
 		# 画像管理
 		@_imgData = new root._LIBS.imagesMgr(

@@ -788,53 +788,51 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
   root._LIBS.debugView = (function(_super) {
     __extends(debugView, _super);
 
-    function debugView(id, sliderPara) {
+    function debugView(list) {
       this.dispose2 = __bind(this.dispose2, this);
-      this.sliderVal = __bind(this.sliderVal, this);
-      this._eChangeSlider = __bind(this._eChangeSlider, this);
+      this.val = __bind(this.val, this);
+      this._eChange = __bind(this._eChange, this);
       this._eClickToggle = __bind(this._eClickToggle, this);
-      this._sliderPara = sliderPara;
-      if (this._sliderPara.width == null) {
-        this._sliderPara.width = 200;
-      }
-      if (this._sliderPara.height == null) {
-        this._sliderPara.height = 20;
-      }
-      if (this._sliderPara.bgColor == null) {
-        this._sliderPara.bgColor = "#FFFFFF";
-      }
-      if (this._sliderPara.btnColor == null) {
-        this._sliderPara.btnColor = "#888888";
-      }
-      this._slider = [];
-      this._toggle;
-      this.onChangeSlider;
-      debugView.__super__.constructor.call(this, id, {
-        resize: false,
-        update: false
-      });
+      this._list = list;
+      this._parts = [];
+      this._vBtn;
+      this._con;
+      this._bg;
+      this.onChange;
+      debugView.__super__.constructor.call(this);
     }
 
     debugView.prototype.addStage = function() {
-      var i, slider, val, _i, _len, _ref;
+      var i, parts, val, _i, _len, _ref;
       this.elm().css({
         position: "fixed",
         zIndex: 9999
       });
-      _ref = this._sliderPara.list;
+      this._con = new root._LIBS.display();
+      this.addChild(this._con);
+      this._bg = new root._LIBS.display();
+      this._con.addChild(this._bg);
+      this._bg.bgColor("#fff");
+      this._bg.alpha(0.8);
+      _ref = this._list;
       for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
         val = _ref[i];
-        slider = new root._LIBS.slider(this.id() + "_slider_" + i, val.min, val.max, val.def, val.name);
-        this.addChild(slider);
-        slider.setSlider(this._sliderPara.width, this._sliderPara.height, this._sliderPara.bgColor, this._sliderPara.btnColor);
-        slider.y((i + 1) * (this._sliderPara.height + 25));
-        slider.onChange = this._eChangeSlider;
-        this._slider.push(slider);
+        if (val.type === 0) {
+          parts = new root._LIBS.slider(val.min, val.max, val.def, val.name);
+        } else {
+          parts = new root._LIBS.toggle(val.def, val.name);
+        }
+        this._con.addChild(parts);
+        parts.y((i + 1) * 50);
+        parts.onChange = this._eChange;
+        this._parts.push(parts);
       }
-      this._toggle = new root._LIBS.btnAreaView(this.id() + "_toggle", this._sliderPara.height, this._sliderPara.height);
+      this._bg.size(250, parts.y() + 70);
+      this._bg.xy(-25, 0);
+      this._toggle = new root._LIBS.btnAreaView(20, 20);
       this.addChild(this._toggle);
       this._toggle.elm().css({
-        backgroundColor: this._sliderPara.bgColor,
+        backgroundColor: "#FF0000",
         opacity: 1
       });
       this._toggle.onClick = this._eClickToggle;
@@ -842,24 +840,17 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
     };
 
     debugView.prototype._eClickToggle = function() {
-      var i, val, _i, _len, _ref, _results;
-      _ref = this._slider;
-      _results = [];
-      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
-        val = _ref[i];
-        _results.push(val.alpha(val.alpha() === 1 ? 0 : 1));
-      }
-      return _results;
+      return this._con.alpha(this._con.alpha() === 1 ? 0 : 1);
     };
 
-    debugView.prototype._eChangeSlider = function(id) {
-      if (this.onChangeSlider != null) {
-        return this.onChangeSlider(id.split("_")[2]);
+    debugView.prototype._eChange = function() {
+      if (this.onChange != null) {
+        return this.onChange();
       }
     };
 
-    debugView.prototype.sliderVal = function(key) {
-      return this._slider[key].sliderVal();
+    debugView.prototype.val = function(key) {
+      return this._parts[key].val();
     };
 
     debugView.prototype.dispose2 = function() {};
@@ -877,17 +868,17 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
   root._LIBS.slider = (function(_super) {
     __extends(slider, _super);
 
-    function slider(id, min, max, def, name) {
+    function slider(min, max, def, name) {
       this.dispose2 = __bind(this.dispose2, this);
-      this.sliderVal = __bind(this.sliderVal, this);
+      this.val = __bind(this.val, this);
       this.update = __bind(this.update, this);
       this.setSlider = __bind(this.setSlider, this);
       this._updateNum = __bind(this._updateNum, this);
       this._eMouseMove = __bind(this._eMouseMove, this);
       this._eMouseUp = __bind(this._eMouseUp, this);
       this._eMouseDown = __bind(this._eMouseDown, this);
-      slider.__super__.constructor.call(this, id, {
-        resize: false
+      slider.__super__.constructor.call(this, {
+        update: true
       });
       this._bgElm;
       this._btnElm;
@@ -917,30 +908,23 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
     }
 
     slider.prototype.addStage = function() {
-      this._nameElm = new root._LIBS.display(this.id() + "_name", {
-        resize: false,
-        update: false
-      });
+      this._nameElm = new root._LIBS.display();
       this.addChild(this._nameElm);
       this._updateNum(this._numPara.def);
       this._nameElm.elm().css({
-        fontSize: "80%"
+        fontSize: "80%",
+        fontWeight: "bold"
       });
-      this._bgElm = new root._LIBS.display(this.id() + "_bg", {
-        resize: false,
-        update: false
-      });
+      this._bgElm = new root._LIBS.display();
       this.addChild(this._bgElm);
-      this._btnElm = new root._LIBS.display(this.id() + "_btn", {
-        resize: false,
-        update: false
-      });
+      this._btnElm = new root._LIBS.display();
       this.addChild(this._btnElm);
       if (this._isSmt) {
-        return this._btnElm.elm().bind("touchstart", this._eMouseDown).bind("touchend", this._eMouseUp).bind("touchmove", this._eMouseMove);
+        this._btnElm.elm().bind("touchstart", this._eMouseDown).bind("touchend", this._eMouseUp).bind("touchmove", this._eMouseMove);
       } else {
-        return this.elm().bind("mousedown", this._eMouseDown).bind("mouseup", this._eMouseUp).bind("mousemove", this._eMouseMove);
+        this.elm().bind("mousedown", this._eMouseDown).bind("mouseup", this._eMouseUp).bind("mousemove", this._eMouseMove);
       }
+      return this.setSlider(200, 20, root.MY.conf.DEBUG_MAIN_COLOR1, root.MY.conf.DEBUG_MAIN_COLOR2);
     };
 
     slider.prototype._eMouseDown = function(e) {
@@ -967,7 +951,7 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
       this._mouse.isDown = false;
       if (this._numPara.old !== this._numPara.now) {
         if (this.onChange != null) {
-          return this.onChange(this.id());
+          return this.onChange();
         }
       }
     };
@@ -995,7 +979,6 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
       this._btnElm.size(height, height);
       this._btnElm.bgColor(btnColor);
       this._nameElm.width(width);
-      this._nameElm.textColor(bgColor);
       this._bgElm.xy(0, this._nameElm.textHeight() + 3);
       this._btnElm.y(this._bgElm.y());
       this._btnPara.min = 0;
@@ -1017,13 +1000,86 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
       }
     };
 
-    slider.prototype.sliderVal = function() {
+    slider.prototype.val = function() {
       return this._numPara.now;
     };
 
     slider.prototype.dispose2 = function() {};
 
     return slider;
+
+  })(root._LIBS.display);
+
+  root = this;
+
+  if (root._LIBS == null) {
+    root._LIBS = {};
+  }
+
+  root._LIBS.toggle = (function(_super) {
+    __extends(toggle, _super);
+
+    function toggle(def, name) {
+      this.dispose2 = __bind(this.dispose2, this);
+      this.val = __bind(this.val, this);
+      this._updateVal = __bind(this._updateVal, this);
+      this._eClick = __bind(this._eClick, this);
+      toggle.__super__.constructor.call(this);
+      this._val = def;
+      this._checkBox;
+      this._checkBoxMark;
+      this._btnArea;
+      this._name = name;
+      this._toggleName;
+      this.onChange;
+    }
+
+    toggle.prototype.addStage = function() {
+      this._toggleName = new root._LIBS.display();
+      this.addChild(this._toggleName);
+      this._updateVal();
+      this._toggleName.elm().css({
+        fontSize: "80%",
+        fontWeight: "bold"
+      });
+      this._checkBox = new root._LIBS.display();
+      this.addChild(this._checkBox);
+      this._checkBox.size(20, 20);
+      this._checkBox.bgColor(root.MY.conf.DEBUG_MAIN_COLOR1);
+      this._checkBox.y(this._toggleName.textHeight());
+      this._checkBoxMark = new root._LIBS.display();
+      this.addChild(this._checkBoxMark);
+      this._checkBoxMark.size(12, 12);
+      this._checkBoxMark.bgColor(root.MY.conf.DEBUG_MAIN_COLOR2);
+      this._checkBoxMark.xy(this._checkBox.x() + 4, this._checkBox.y() + 4);
+      if (!this._val) {
+        this._checkBoxMark.alpha(0);
+      }
+      this._btnArea = new root._LIBS.btnAreaView(20, 20);
+      this.addChild(this._btnArea);
+      this._btnArea.onClick = this._eClick;
+      return this._btnArea.xy(this._checkBox.x(), this._checkBox.y());
+    };
+
+    toggle.prototype._eClick = function(e) {
+      this._val = !this._val;
+      return this._updateVal();
+    };
+
+    toggle.prototype._updateVal = function() {
+      this._toggleName.text(this._name + "::" + this._val);
+      if (this._checkBoxMark != null) {
+        return this._checkBoxMark.alpha(this._val ? 1 : 0);
+      }
+    };
+
+    toggle.prototype.val = function() {
+      return this._val;
+    };
+
+    toggle.prototype.dispose2 = function() {};
+
+    return toggle;
 
   })(root._LIBS.display);
 
@@ -1237,13 +1293,10 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
   root._LIBS.borderView = (function(_super) {
     __extends(borderView, _super);
 
-    function borderView(elm, width, height, color, weight) {
+    function borderView(width, height, color, weight) {
       this.changeBorder = __bind(this.changeBorder, this);
       this.dispose2 = __bind(this.dispose2, this);
-      borderView.__super__.constructor.call(this, elm, {
-        update: false,
-        resize: false
-      });
+      borderView.__super__.constructor.call(this);
       this._color = color;
       this._weight = weight;
       this._width2 = width;
@@ -1256,30 +1309,35 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
 
     borderView.prototype.addStage = function() {
       this.size(this._width2, this._height2);
-      this._top = new root._LIBS.display(this.id() + "_top", {
-        update: false,
-        resize: false
-      });
+      this._top = new root._LIBS.display();
       this.addChild(this._top);
-      this._left = new root._LIBS.display(this.id() + "_left", {
-        update: false,
-        resize: false
-      });
+      this._left = new root._LIBS.display();
       this.addChild(this._left);
-      this._bottom = new root._LIBS.display(this.id() + "_bottom", {
-        update: false,
-        resize: false
-      });
+      this._bottom = new root._LIBS.display();
       this.addChild(this._bottom);
-      this._right = new root._LIBS.display(this.id() + "_right", {
-        update: false,
-        resize: false
-      });
+      this._right = new root._LIBS.display();
       this.addChild(this._right);
       return this.changeBorder(this.width(), this.height());
     };
 
-    borderView.prototype.dispose2 = function() {};
+    borderView.prototype.dispose2 = function() {
+      if (this._top != null) {
+        this._top.dispose();
+        this._top = null;
+      }
+      if (this._left != null) {
+        this._left.dispose();
+        this._left = null;
+      }
+      if (this._bottom != null) {
+        this._bottom.dispose();
+        this._bottom = null;
+      }
+      if (this._right != null) {
+        this._right.dispose();
+        return this._right = null;
+      }
+    };
 
     borderView.prototype.changeBorder = function(width, height, color, weight) {
       this.size(width, height);
@@ -1316,16 +1374,13 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
   root._LIBS.btnAreaView = (function(_super) {
     __extends(btnAreaView, _super);
 
-    function btnAreaView(elm, width, height) {
+    function btnAreaView(width, height) {
       this._eClick = __bind(this._eClick, this);
       this._eRollOut = __bind(this._eRollOut, this);
       this._eRollOver = __bind(this._eRollOver, this);
       this.visible = __bind(this.visible, this);
       this.dispose2 = __bind(this.dispose2, this);
-      btnAreaView.__super__.constructor.call(this, elm, {
-        update: false,
-        resize: false
-      });
+      btnAreaView.__super__.constructor.call(this);
       this._width = width;
       this._height = height;
       this.onClick;
@@ -1339,7 +1394,10 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
         backgroundColor: "#FF0000",
         opacity: 0
       });
-      return this.setBtn([this._eRollOver], [this._eRollOut], [this._eClick]);
+      this.setBtn([this._eRollOver], [this._eRollOut], [this._eClick]);
+      if (root.MY.conf.IS_V_BTNAREA) {
+        return this.visible(true);
+      }
     };
 
     btnAreaView.prototype.dispose2 = function() {
@@ -1393,13 +1451,13 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
   root._LIBS.canvas = (function(_super) {
     __extends(canvas, _super);
 
-    function canvas(elm, option) {
+    function canvas() {
       this.canvasElm = __bind(this.canvasElm, this);
       this.canvasId = __bind(this.canvasId, this);
       this.ctx = __bind(this.ctx, this);
       this.setupCanvas = __bind(this.setupCanvas, this);
       this.dispose2 = __bind(this.dispose2, this);
-      canvas.__super__.constructor.call(this, elm, option);
+      canvas.__super__.constructor.call(this);
       this._canvasId;
       this._canvasElm;
       this._ctx;
@@ -2589,7 +2647,10 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
       this.IS_FF = root.MY.util.isFF();
       this.IS_RETINA = (window.devicePixelRatio != null) && window.devicePixelRatio > 1;
       this.IS_IMG_RETINA = true;
+      this.IS_V_BTNAREA = false;
       this.PATH_IMG = "assets/images/";
+      this.DEBUG_MAIN_COLOR1 = "#cccccc";
+      this.DEBUG_MAIN_COLOR2 = "#888888";
     }
 
     return conf;
@@ -2642,7 +2703,8 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
     }
 
     contentsView.prototype.setup = function() {
-      var test1, test2, test3, testCon;
+      var btn1, debug, test1, test2, test3, test4, testCon,
+        _this = this;
       test1 = new root._LIBS.display();
       this.addChild(test1);
       test1.size(300, 300);
@@ -2663,6 +2725,44 @@ a.style.width="1px",a.style.height=Math.random()*30+"px",a.style.cssFloat="left"
         resize: true
       });
       testCon.addChild(test3);
+      test4 = new root._LIBS.borderView(200, 200, "#00FF00", 5);
+      testCon.addChild(test4);
+      btn1 = new root._LIBS.btnAreaView(50, 50);
+      testCon.addChild(btn1);
+      btn1.onClick = function() {
+        return console.log("unko");
+      };
+      debug = new root._LIBS.debugView([
+        {
+          type: 0,
+          name: "SLIDER01",
+          def: 50,
+          min: 0,
+          max: 100
+        }, {
+          type: 0,
+          name: "SLIDER02",
+          def: 20,
+          min: 0,
+          max: 200
+        }, {
+          type: 1,
+          name: "TOGGLE01",
+          def: true
+        }, {
+          type: 0,
+          name: "SLIDER03",
+          def: 20,
+          min: 0,
+          max: 300
+        }, {
+          type: 1,
+          name: "TOGGLE02",
+          def: false
+        }
+      ]);
+      this.addChild(debug);
+      debug.xy(200, 20);
       this._imgData = new root._LIBS.imagesMgr(["dummy0.jpg", "dummy1.jpg", "dummy2.jpg", "dummy3.jpg"], root.MY.conf.PATH_IMG, root.MY.conf.IS_U_IE8);
       this._imgData.onComplete = this._eCompleteImages;
       this._imgData.onProgress = this._eProgressImages;

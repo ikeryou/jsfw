@@ -59,7 +59,28 @@ class root.MY_CLASS.conf
 		# 画像をRetina対応するかどうか
 		@IS_IMG_RETINA = true;
 		
+		# btnAreaViewの可視化
+		@IS_V_BTNAREA = false;
+		
 		# 共通画像パス
 		@PATH_IMG = "assets/images/";
+		
+		# デバック用ツールのメインカラー
+		@DEBUG_MAIN_COLOR1 = "#cccccc";
+		@DEBUG_MAIN_COLOR2 = "#888888";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

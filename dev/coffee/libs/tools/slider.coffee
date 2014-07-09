@@ -14,9 +14,9 @@ class root._LIBS.slider extends root._LIBS.display
 	
 	# コンストラクタ
 	# -----------------------------------------------
-	constructor: (id, min, max, def, name) ->
+	constructor: (min, max, def, name) ->
 		
-		super(id, {resize:false});
+		super({update:true});
 		
 		# 背景
 		@_bgElm;
@@ -73,19 +73,20 @@ class root._LIBS.slider extends root._LIBS.display
 	addStage: ->	
 		
 		# 名前
-		@_nameElm = new root._LIBS.display(@id() + "_name", {resize:false, update:false});
+		@_nameElm = new root._LIBS.display();
 		@addChild(@_nameElm);
 		@_updateNum(@_numPara.def);
 		@_nameElm.elm().css({
-			fontSize:"80%"
+			fontSize:"80%",
+			fontWeight:"bold"
 		});
 		
 		# 背景
-		@_bgElm = new root._LIBS.display(@id() + "_bg", {resize:false, update:false});
+		@_bgElm = new root._LIBS.display();
 		@addChild(@_bgElm);
 		
 		# ボタン
-		@_btnElm = new root._LIBS.display(@id() + "_btn", {resize:false, update:false});
+		@_btnElm = new root._LIBS.display();
 		@addChild(@_btnElm);
 		
 		# ボタンイベント設定
@@ -93,6 +94,8 @@ class root._LIBS.slider extends root._LIBS.display
 			@_btnElm.elm().bind("touchstart", @_eMouseDown).bind("touchend", @_eMouseUp).bind("touchmove", @_eMouseMove);
 		else
 			@elm().bind("mousedown", @_eMouseDown).bind("mouseup", @_eMouseUp).bind("mousemove", @_eMouseMove);
+			
+		@setSlider(200, 20, root.MY.conf.DEBUG_MAIN_COLOR1, root.MY.conf.DEBUG_MAIN_COLOR2);
 		
 	
 	# -----------------------------------------------
@@ -124,7 +127,7 @@ class root._LIBS.slider extends root._LIBS.display
 		@_mouse.isDown = false;
 		if @_numPara.old != @_numPara.now
 			if @onChange?
-				@onChange(@id());
+				@onChange();
 		
 	
 	# -----------------------------------------------
@@ -163,7 +166,7 @@ class root._LIBS.slider extends root._LIBS.display
 		@_btnElm.bgColor(btnColor);
 		
 		@_nameElm.width(width);
-		@_nameElm.textColor(bgColor);
+		#@_nameElm.textColor(bgColor);
 		
 		@_bgElm.xy(0, @_nameElm.textHeight() + 3);
 		@_btnElm.y(@_bgElm.y());
@@ -173,7 +176,6 @@ class root._LIBS.slider extends root._LIBS.display
 		
 		@_btnPara.x = root.MY.util.map(@_numPara.def, @_btnPara.min, @_btnPara.max, @_numPara.min, @_numPara.max);
 		@_btnElm.x(@_btnPara.x);
-		
 		
 		
 	# -----------------------------------
@@ -197,7 +199,7 @@ class root._LIBS.slider extends root._LIBS.display
 	# -----------------------------------
 	# 現在の値
 	# -----------------------------------
-	sliderVal: =>
+	val: =>
 		
 		return @_numPara.now;
 	
